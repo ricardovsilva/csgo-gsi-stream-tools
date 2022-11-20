@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script type="text/javascript" src="http://localhost:3000/faye/client.js"></script>
+    <style>
+        div, div {
+            width: 1343px;
+            height: 755px;
+            background-color: black;
+            position: relative;
+            margin: auto;
+            margin-top: 50px;
+            box-shadow: none;
+        }
+
+        div.beeping {
+            transition: box-shadow 0.3s ease-in-out;            
+            box-shadow: 0 0 20px 30px yellow;            
+            /* in order: x offset, y offset, blur size, spread size, color */
+            /* blur size and spread size are optional (they default to 0) */
+        }
+
+        div.ct {
+            transition: box-shadow 0.3s ease-in-out;            
+            box-shadow: 0 0 20px 30px blue;            
+        }
+
+        div.tr {
+            transition: box-shadow 0.3s ease-in-out;            
+            box-shadow: 0 0 20px 30px orange;
+        }
+
+        div.silent {
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+            transition: box-shadow 0.1s ease-in-out;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="glowingDiv"></div>
+
+        <script type="text/javascript">
+            var client = new Faye.Client('http://localhost:3000/faye');
+            let beeping = false;
+
+            const div = document.getElementById("glowingDiv")
+
+            client.subscribe('/bomb', function (message) {
+                const { state } = message;
+                if (state === "beep" && !beeping) {
+                    beeping = true
+                    div.className = "silent"
+                    setTimeout(() => {
+                        div.className = "beeping n"
+                        setTimeout(() => {
+                            beeping = false
+                        }, 100)
+                    }, 125);
+                }
+            });
+
+            client.subscribe('/win', function (message) {
+                setTimeout(() => {
+                    div.className = message.team === 'T' ? "tr" : "ct"
+                }, 300)
+            })
+
+            client.subscribe('/round', function (message) {
+                setTimeout(() => {
+                    div.className = "silent"
+                }, 300)
+            })
+        </script>
+
+</body>
+
+</html>
